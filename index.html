@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sippify 🥃 AI Drink Advisor</title>
+<meta name="description" content="AI-powered drink advisor — 20 smart questions, perfect drink every time."/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+Sinhala:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#050508;color:#f0ede8;font-family:'DM Sans',sans-serif;min-height:100vh;}
+.app{min-height:100vh;background:radial-gradient(ellipse at 20% 50%,#1a0a2e 0%,#050508 50%,#0a1020 100%);display:flex;flex-direction:column;align-items:center;padding:20px 16px 80px;position:relative;overflow-x:hidden;}
+.app::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from 0deg at 50% 50%,transparent 0%,rgba(180,100,255,.03) 10%,transparent 20%,rgba(255,160,50,.02) 30%,transparent 40%);animation:bgR 20s linear infinite;pointer-events:none;z-index:0;}
+@keyframes bgR{to{transform:rotate(360deg)}}
+
+/* SETUP */
+.setup{width:100%;max-width:580px;background:linear-gradient(135deg,rgba(255,59,59,.12),rgba(255,140,0,.08));border:1px solid rgba(255,140,0,.35);border-radius:20px;padding:28px;margin:20px 0;position:relative;z-index:1;animation:fadeUp .4s ease;}
+.setup h3{color:#ff9a3c;font-size:14px;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
+.setup p{color:rgba(240,237,232,.65);font-size:13px;line-height:1.9;margin-bottom:16px;font-family:'Noto Sans Sinhala',sans-serif;}
+.setup a{color:#ffd580;text-decoration:underline;}
+.setup code{background:rgba(255,140,0,.15);padding:2px 8px;border-radius:4px;font-size:12px;font-family:monospace;}
+.key-row{display:flex;gap:10px;flex-wrap:wrap;}
+.key-in{flex:1;min-width:200px;background:rgba(0,0,0,.4);border:1px solid rgba(255,140,0,.3);color:#f0ede8;padding:12px 16px;border-radius:10px;font-family:monospace;font-size:13px;}
+.key-in:focus{outline:none;border-color:#ff9a3c;}
+.key-btn{padding:12px 22px;background:linear-gradient(135deg,#ff9a3c,#ff4500);border:none;border-radius:10px;color:#000;font-weight:700;cursor:pointer;font-size:13px;white-space:nowrap;transition:.2s;}
+.key-btn:hover{opacity:.88;}
+
+/* HEADER */
+.header{text-align:center;margin-bottom:32px;padding-top:24px;position:relative;z-index:1;}
+.logo{font-family:'Bebas Neue',cursive;font-size:clamp(52px,10vw,96px);letter-spacing:6px;background:linear-gradient(135deg,#ff9a3c,#ff6b6b,#c77dff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;filter:drop-shadow(0 0 30px rgba(255,154,60,.4));}
+.tagline{font-family:'Noto Sans Sinhala',sans-serif;color:rgba(240,237,232,.4);font-size:12px;letter-spacing:2px;margin-top:8px;}
+.badge{display:inline-block;margin-top:10px;background:rgba(255,154,60,.1);border:1px solid rgba(255,154,60,.22);border-radius:100px;padding:5px 16px;font-size:11px;letter-spacing:2px;color:#ff9a3c;text-transform:uppercase;}
+
+/* WIZARD */
+.wizard{width:100%;max-width:580px;position:relative;z-index:1;}
+.pbar{display:flex;gap:3px;margin-bottom:28px;}
+.pd{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.06);transition:background .4s;}
+.pd.done{background:#ff9a3c;}
+.pd.active{background:linear-gradient(90deg,#ff9a3c,#c77dff);}
+.scard{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:22px;padding:30px 28px;backdrop-filter:blur(20px);animation:fadeUp .35s ease;position:relative;z-index:1;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.shead{display:flex;align-items:flex-start;gap:14px;margin-bottom:24px;}
+.sicon{font-size:28px;width:52px;height:52px;min-width:52px;display:flex;align-items:center;justify-content:center;background:rgba(255,154,60,.1);border-radius:14px;border:1px solid rgba(255,154,60,.2);}
+.slabel{font-family:'Noto Sans Sinhala',sans-serif;font-size:18px;font-weight:600;color:#f0ede8;line-height:1.3;}
+.ssub{font-size:12px;color:rgba(240,237,232,.32);margin-top:3px;}
+.snum{font-size:11px;color:rgba(240,237,232,.22);letter-spacing:1px;margin-top:4px;text-transform:uppercase;}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:9px;}
+.opt{padding:11px 13px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);color:rgba(240,237,232,.68);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;text-align:center;line-height:1.35;}
+.opt:hover{border-color:rgba(255,154,60,.4);background:rgba(255,154,60,.07);color:#f0ede8;transform:translateY(-1px);}
+.opt.sel{border-color:#ff9a3c;background:rgba(255,154,60,.15);color:#f0ede8;font-weight:600;}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:26px;}
+.bbk{padding:11px 22px;border-radius:10px;border:1px solid rgba(255,255,255,.09);background:transparent;color:rgba(240,237,232,.45);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all .2s;}
+.bbk:hover{color:#f0ede8;border-color:rgba(255,255,255,.2);}
+.bnx{padding:12px 28px;border-radius:10px;border:none;background:linear-gradient(135deg,#ff9a3c,#ff6b6b);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;}
+.bnx:hover{transform:translateY(-1px);filter:brightness(1.1);box-shadow:0 8px 22px rgba(255,100,60,.3);}
+.bnx:disabled{opacity:.2;cursor:not-allowed;transform:none;filter:none;}
+
+/* LOADING */
+.lwrap{width:100%;max-width:560px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:360px;position:relative;z-index:1;}
+.lglass{font-size:80px;animation:wobble 1.2s ease-in-out infinite;filter:drop-shadow(0 0 24px rgba(255,154,60,.5));}
+@keyframes wobble{0%,100%{transform:rotate(-8deg) scale(1)}50%{transform:rotate(8deg) scale(1.06)}}
+.lbwrap{width:260px;height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin:28px 0 20px;overflow:hidden;}
+.lbar{height:100%;border-radius:2px;background:linear-gradient(90deg,#ff9a3c,#c77dff);animation:slide 2.4s ease-in-out infinite;}
+@keyframes slide{0%{width:5%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:5%;margin-left:94%}}
+.lmsg{font-family:'Noto Sans Sinhala',sans-serif;color:rgba(240,237,232,.65);font-size:15px;text-align:center;min-height:28px;transition:opacity .3s;}
+.lsub{font-size:11px;color:rgba(240,237,232,.22);letter-spacing:2px;text-transform:uppercase;margin-top:8px;}
+
+/* RESULT */
+.rcard{width:100%;max-width:640px;animation:fadeUp .5s ease;position:relative;z-index:1;}
+.rhero{background:linear-gradient(135deg,rgba(255,154,60,.13),rgba(199,125,255,.08));border:1px solid rgba(255,154,60,.28);border-radius:26px;padding:36px 32px;margin-bottom:14px;position:relative;overflow:hidden;}
+.rhero::before{content:'';position:absolute;top:-40px;right:-40px;width:220px;height:220px;background:radial-gradient(circle,rgba(255,154,60,.15) 0%,transparent 70%);pointer-events:none;}
+.demoji{font-size:58px;display:block;margin-bottom:10px;filter:drop-shadow(0 4px 16px rgba(255,154,60,.4));}
+.dname{font-family:'Bebas Neue',cursive;font-size:clamp(36px,7vw,58px);letter-spacing:3px;background:linear-gradient(135deg,#ff9a3c,#ffd580);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:6px;}
+.dtype{display:inline-block;padding:4px 14px;border-radius:20px;background:rgba(199,125,255,.15);border:1px solid rgba(199,125,255,.3);color:#c77dff;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
+.brand-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:13px;color:rgba(240,237,232,.5);}
+.brand-name{color:#ff9a3c;font-weight:600;font-size:14px;}
+.ddesc{color:rgba(240,237,232,.76);font-size:14px;line-height:1.78;margin-bottom:24px;}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+@media(max-width:460px){.metrics{grid-template-columns:repeat(2,1fr);}}
+.mbox{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 10px;text-align:center;}
+.mval{font-family:'Bebas Neue',cursive;font-size:26px;letter-spacing:1px;color:#ff9a3c;line-height:1;margin-bottom:3px;}
+.mlbl{font-size:10px;color:rgba(240,237,232,.32);text-transform:uppercase;letter-spacing:1px;}
+.mrow{display:flex;align-items:center;gap:10px;margin-top:14px;}
+.mlabel{font-size:11px;color:rgba(240,237,232,.32);text-transform:uppercase;letter-spacing:1px;width:72px;}
+.mtrack{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+.mfill{height:100%;border-radius:3px;background:linear-gradient(90deg,#ff9a3c,#c77dff);}
+.mnum{font-size:11px;color:rgba(240,237,232,.32);width:28px;text-align:right;}
+.sec{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:22px;margin-bottom:12px;}
+.stitle{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:rgba(240,237,232,.32);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.stitle::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06);}
+.sbody{color:rgba(240,237,232,.72);font-size:13.5px;line-height:1.8;}
+.sbody strong{color:#ff9a3c;}
+.wsec{background:rgba(255,80,80,.07);border:1px solid rgba(255,80,80,.22);border-radius:18px;padding:22px;margin-bottom:12px;}
+.wtitle{font-size:11px;font-weight:600;color:#ff6b6b;margin-bottom:10px;text-transform:uppercase;letter-spacing:2px;}
+.wbody{color:rgba(255,200,200,.7);font-size:13.5px;line-height:1.8;}
+.ssec{background:rgba(50,200,130,.05);border:1px solid rgba(50,200,130,.18);border-radius:18px;padding:22px;margin-bottom:14px;}
+.sstitle{font-size:11px;font-weight:600;color:#32c882;margin-bottom:10px;text-transform:uppercase;letter-spacing:2px;}
+.ssbody{color:rgba(180,240,210,.72);font-size:13.5px;line-height:1.8;}
+.alts{display:flex;flex-direction:column;gap:9px;}
+.altrow{padding:12px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+.altn{color:#f0ede8;font-size:14px;font-weight:500;flex-shrink:0;}
+.altw{font-size:11px;color:rgba(240,237,232,.32);text-align:right;line-height:1.4;max-width:200px;}
+.fbox{background:linear-gradient(135deg,rgba(199,125,255,.08),rgba(255,154,60,.05));border:1px solid rgba(199,125,255,.18);border-radius:18px;padding:22px;margin-bottom:14px;}
+.fbody{color:rgba(210,190,255,.72);font-size:13.5px;line-height:1.8;font-style:italic;}
+.rbtn{width:100%;padding:16px;border-radius:14px;border:1px solid rgba(255,154,60,.28);background:transparent;color:#ff9a3c;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;margin-top:6px;}
+.rbtn:hover{background:rgba(255,154,60,.09);transform:translateY(-1px);}
+.err-bar{background:rgba(255,59,59,.1);border:1px solid rgba(255,59,59,.3);border-radius:14px;padding:14px 18px;margin-bottom:16px;color:#ff8080;font-size:13px;font-family:'Noto Sans Sinhala',sans-serif;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.err-x{background:none;border:1px solid rgba(255,100,100,.3);border-radius:6px;color:#ff9a3c;padding:3px 10px;cursor:pointer;font-size:12px;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const STEPS = [
+  { id:"country", label:"ඔබ ඉන්නෙ කොහෙද?", sub:"Where are you right now?", icon:"🌍",
+    opts:["🇱🇰 Sri Lanka","🇺🇸 USA","🇬🇧 UK","🇯🇵 Japan","🇦🇺 Australia","🇩🇪 Germany","🇫🇷 France","🇮🇳 India","🇹🇭 Thailand","🇧🇷 Brazil","🇦🇪 UAE / Dubai","🇰🇷 South Korea","🇮🇹 Italy","🇲🇽 Mexico","🇷🇺 Russia"] },
+  { id:"weather", label:"කාලගුණය කොහොමද?", sub:"What's the weather like?", icon:"🌤️",
+    opts:["🥵 Hot & Humid","☀️ Warm & Sunny","😊 Cool & Pleasant","🥶 Cold / Freezing","🌧️ Rainy","❄️ Snowy"] },
+  { id:"timeOfDay", label:"දැන් කීයද?", sub:"What time is it?", icon:"🕐",
+    opts:["🌄 Morning (before noon)","☀️ Afternoon (12–5pm)","🌅 Evening (5–9pm)","🌙 Night (9pm–midnight)","🌑 Late Night (after midnight)"] },
+  { id:"setting", label:"කොහෙද බොන්නෙ?", sub:"Where are you drinking?", icon:"🏠",
+    opts:["🏠 Home – Indoor","🍺 Bar / Pub","🍽️ Restaurant","🏖️ Beach / Seaside","🌿 Garden / Outdoor","🌆 Rooftop","🎶 Club / Nightclub","🎪 Festival / Concert"] },
+  { id:"company", label:"කාත් එක්ක?", sub:"Who are you with?", icon:"👥",
+    opts:["🧍 Solo – Just me","💑 Date / Romantic","👬 Close Friends","💼 Work Colleagues","🎉 Big Party Group","👨‍👩‍👧 Family","🤝 New People","⚽ Sports Team"] },
+  { id:"groupSize", label:"කීදෙනෙක්?", sub:"How big is your group?", icon:"🔢",
+    opts:["1️⃣ Just me","2️⃣ Two of us","3️⃣–5️⃣ Small group","6️⃣–10️⃣ Medium group","🏟️ 10+ Large group"] },
+  { id:"occasion", label:"අවස්ථාව?", sub:"What's the occasion?", icon:"🎉",
+    opts:["😎 Casual hangout","🎂 Birthday party","🏆 Celebrating success","💔 Breakup recovery","💍 Wedding / Reception","🏖️ Holiday / Vacation","⚽ Sports watching","🎆 New Year / Festival","💼 Business networking","🎬 Pre-game / Pre-party"] },
+  { id:"drinkerType", label:"ඔබ බොන්නෙ කොහොමද?", sub:"How experienced are you?", icon:"🥂",
+    opts:["🌱 First time ever","🍃 Rarely / Lightweight","😊 Casual – a few drinks","🍺 Social & regular","💪 Experienced","🔥 Heavy – very tolerant"] },
+  { id:"feeling", label:"ඕනෑ Feeling?", sub:"What feeling are you after?", icon:"✨",
+    opts:["😌 Calm & Relaxed","🚀 Euphoric / Fly High!","💬 Social & Chatty","💕 Romantic & Warm","⚡ Wild & Energetic","😴 Mellow & Sleepy","🌀 Forget Everything","🎨 Creative & Inspired"] },
+  { id:"mood", label:"ඇත්ත ඇත්තතටම ඇයි?", sub:"Real reason for drinking?", icon:"🤫",
+    opts:["😄 Just for fun!","😤 Stress relief","👫 Social pressure","💔 Heartbreak","🎉 Celebrating good news","🥱 Boredom","🤩 Curious / trying something new","😤 Long hard day at work"] },
+  { id:"budget", label:"Budget?", sub:"What's your price range?", icon:"💰",
+    opts:["💵 Budget (<5000 LKR / <$80)","💳 Mid (5000–10000 LKR / $80–$160)","💎 Premium (10000–20000 LKR / $160–$320)","🤑 Luxury – No Limit!"] },
+  { id:"duration", label:"කොච්චර වෙලා?", sub:"How long is the session?", icon:"⏱️",
+    opts:["⚡ Quick – 1 hour","🕑 Short – 2 hours","🔥 Medium – 3–4 hours","🌙 Long – 5+ hours","🌅 All night till morning!"] },
+  { id:"driving", label:"Drive කරන්නද?", sub:"Are you driving later?", icon:"🚗",
+    opts:["✅ Not driving – safe","⚠️ Maybe in 3–4 hrs","🚗 Driving in 1–2 hrs","🚫 Designated driver tonight"] },
+  { id:"foodStatus", label:"ආමාශය?", sub:"Have you eaten?", icon:"🍽️",
+    opts:["🍛 Full – just ate","🥜 Light snacks only","😶 Empty stomach","🍽️ Eating while drinking"] },
+  { id:"health", label:"සෞඛ්‍ය තත්ත්වය?", sub:"Health status today?", icon:"🏥",
+    opts:["💪 Perfectly healthy","😓 Bit tired / headache","🤒 Recovering from illness","💊 Diabetic / Blood pressure","💉 On medication","🥴 Hungover from yesterday!"] },
+  { id:"tolerance", label:"Alcohol Tolerance?", sub:"How much can you handle?", icon:"💪",
+    opts:["🌱 Very low – 1 drink does it","😊 Low – 2-3 drinks max","💪 Medium – can handle a few","🔥 High – takes a lot","🏆 Very high – barely feel it"] },
+  { id:"mixer", label:"Mix කරනවාද?", sub:"How do you like it?", icon:"🧊",
+    opts:["🥃 Neat / Straight","🧊 On the Rocks","💧 With Soda / Tonic","🍊 With Fruit Juice","⚡ With Energy Drink","🍹 As a Cocktail"] },
+  { id:"snack", label:"Snack?", sub:"What are you snacking on?", icon:"🥩",
+    opts:["🌶️ Spicy Sri Lankan (Isso wade)","🍟 Western (Chips / Nachos)","🍖 Grilled / BBQ","🍱 Japanese / Light bites","🧀 Cheese board","🚫 No snacks at all"] },
+  { id:"tomorrow", label:"හෙට?", sub:"What's happening tomorrow?", icon:"📅",
+    opts:["😎 Free day – nothing planned","💼 Normal work day","😬 Important meeting","📋 Exam or interview","🥂 Drinking again tomorrow!"] },
+  { id:"restrictions", label:"Restrictions?", sub:"Anything to avoid?", icon:"🚫", multi:true,
+    opts:["✅ None – anything goes","🚫 No beer","🚫 No wine","🚫 No spirits / whisky","🚫 No cocktails","🌿 Low calorie only","🌾 Gluten-free","☪️ Halal only"] },
+];
+
+const MSGS = [
+  "AI මාමා හිතනවා... 🤔","මචං ටිකක් ඉඳපං! 😤","සුපිරි drink එකක් හොයනවා... 🔍",
+  "ගෙදර ගිහිල්ල bottle ගන්නද? 🏃","Bartender AI ගෙන් අනුමැතිය... 🍸","Flavor profile check කරනවා... 🧪",
+  "Hangover risk calculate කරනවා... 😵","Budget ගණිනවා – ගාණ ගළපනවා! 💰",
+  "World's best drinks research... 🌍","AI දෙව්වරු consultation කරනවා... 🙏",
+  "හොඳ feeling ගේන drink හොයනවා... ✨","මචං almost ready! 🥳",
+];
+
+const GK = "sippify_groq_v1";
+
+const clean = s => String(s).replace(/^\S+\s*/,"").trim();
+const buildPrompt = a => {
+  const f = id => { const v=a[id]; if(!v) return "Not specified"; if(Array.isArray(v)) return v.map(clean).join(", "); return clean(String(v)); };
+  const country = f("country"), driving = f("driving");
+  const isDriving = driving.toLowerCase().includes("driving")||driving.toLowerCase().includes("maybe");
+  return `You are the world's most knowledgeable and fun drinks advisor — expert bartender, sommelier, alcohol culture specialist. Recommend the SINGLE BEST, MOST SPECIFIC alcoholic drink.
+
+CRITICAL RULES:
+1. "drink" = specific real drink name. GOOD: "Johnnie Walker Black Label Highball", "Lion Lager on tap", "Aperol Spritz". BAD: "Beer", "Whisky".
+2. "brand" = real brand available in ${country}.
+3. "howToOrder" = step-by-step: exact glass, ice style, mixer ratio, garnish, temperature, bar ordering words.
+4. "price" = local currency for ${country} with realistic amounts.
+5. "abv" = actual ABV% of the specific drink.
+6. For Sri Lanka: mix Sinhala slang in description — "මචං, this is fire!", "සුපිරි!", "පට්ට feeling!"
+7. All text fields: minimum 2-3 rich vivid specific sentences.
+
+USER PROFILE (20 factors):
+1. Country: ${f("country")}
+2. Weather: ${f("weather")}
+3. Time: ${f("timeOfDay")}
+4. Venue: ${f("setting")}
+5. Company: ${f("company")}
+6. Group size: ${f("groupSize")}
+7. Occasion: ${f("occasion")}
+8. Experience: ${f("drinkerType")}
+9. Desired feeling: ${f("feeling")}
+10. Real reason: ${f("mood")}
+11. Budget: ${f("budget")}
+12. Duration: ${f("duration")}
+13. Driving: ${f("driving")}
+14. Food status: ${f("foodStatus")}
+15. Health: ${f("health")}
+16. Tolerance: ${f("tolerance")}
+17. Mixer pref: ${f("mixer")}
+18. Snack pref: ${f("snack")}
+19. Tomorrow: ${f("tomorrow")}
+20. Restrictions: ${f("restrictions")}
+
+Respond ONLY with valid JSON, no markdown, no code fences:
+{"drink":"specific real drink name","brand":"specific brand name","drinkType":"Category","emoji":"emoji","description":"3-4 vivid sentences why this drink is perfect for ALL their context. For Sri Lanka mix Sinhala slang!","quantity":"e.g. 2-3 pints (660ml each)","units":"e.g. 4.5 units","abv":"actual ABV% e.g. 5.8%","price":"realistic local price in local currency for ${country}","moodEffect":"vivid specific feeling in 20-45 min for THIS drink","flavorProfile":"5-6 specific tasting notes","howToOrder":"EXACT step-by-step: glass → ice → pour → mixer ratio → garnish → temperature → bar words","snackPairing":"3 specific snack pairings with reason, include local options for ${country}","overdoseWarning":"how many is too many for their tolerance, exact signs for this drink type","recoveryAdvice":"detailed hangover plan: tonight before bed + morning routine + specific foods (thambili/kanda for Sri Lanka) + timing","drivingAdvice":${isDriving?`"specific driving advice, wait time, units in recommended quantity, BAC for ${country}, transport alternatives"`:"null"},"alternatives":[{"name":"specific brand+drink","reason":"why"},{"name":"specific brand+drink","reason":"why"},{"name":"best non-alcoholic option","reason":"why"}],"funFact":"one genuinely fascinating fact about this specific drink","intensity":7,"socialScore":8,"calmScore":4}`;
+};
+
+function App() {
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem(GK)||"");
+  const [keyIn, setKeyIn]   = useState("");
+  const [showSetup, setShowSetup] = useState(!localStorage.getItem(GK));
+  const [step, setStep]     = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [msgIdx, setMsgIdx] = useState(0);
+  const [result, setResult] = useState(null);
+  const [error, setError]   = useState(null);
+  const timer = useRef(null);
+
+  useEffect(() => {
+    if (!loading) { clearInterval(timer.current); return; }
+    setMsgIdx(0);
+    timer.current = setInterval(() => setMsgIdx(i => (i+1)%MSGS.length), 2200);
+    return () => clearInterval(timer.current);
+  }, [loading]);
+
+  const saveKey = () => {
+    const k = keyIn.trim();
+    if (!k.startsWith("gsk_")) { alert('Key හරිනෑ! "gsk_" කියලා පටන් ගන්නවා.'); return; }
+    localStorage.setItem(GK, k);
+    setApiKey(k); setShowSetup(false);
+  };
+
+  const cur = STEPS[step];
+
+  const select = val => {
+    let updated;
+    if (cur.multi) {
+      const prev = answers[cur.id]||[];
+      if (val==="✅ None – anything goes") updated={...answers,[cur.id]:[val]};
+      else {
+        const f=prev.filter(v=>v!=="✅ None – anything goes");
+        const u=f.includes(val)?f.filter(v=>v!==val):[...f,val];
+        updated={...answers,[cur.id]:u.length?u:undefined};
+      }
+      setAnswers(updated);
+    } else {
+      updated={...answers,[cur.id]:val};
+      setAnswers(updated);
+      setTimeout(()=>{ if(step<STEPS.length-1) setStep(s=>s+1); else submit(updated); },220);
+    }
+  };
+
+  const isSel = val => { const a=answers[cur.id]; return Array.isArray(a)?a.includes(val):a===val; };
+  const canNext = () => { const a=answers[cur.id]; return Array.isArray(a)?a.length>0:!!a; };
+
+  const submit = async (ans) => {
+    if (!apiKey) { setShowSetup(true); return; }
+    setLoading(true); setError(null);
+    try {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+apiKey},
+        body:JSON.stringify({model:"llama-3.3-70b-versatile",max_tokens:2400,temperature:0.85,
+          messages:[{role:"user",content:buildPrompt(ans||answers)}]})
+      });
+      if (!res.ok){const e=await res.json();throw new Error(e.error?.message||"HTTP "+res.status);}
+      const data=await res.json();
+      const raw=data.choices?.[0]?.message?.content||"";
+      const json=raw.replace(/```json|```/gi,"").trim();
+      setResult(JSON.parse(json));
+    } catch(e) {
+      const isAuth=e.message?.includes("401")||e.message?.toLowerCase().includes("auth")||e.message?.toLowerCase().includes("key");
+      setError(isAuth?"🔑 API Key හරිනෑ! Key check කරලා fix කරන්නකෝ.":"Error: "+e.message);
+      if(isAuth) setShowSetup(true);
+    } finally { setLoading(false); }
+  };
+
+  const reset = () => { setStep(0); setAnswers({}); setResult(null); setError(null); };
+
+  return (
+    <div className="app">
+      {showSetup && (
+        <div className="setup">
+          <h3>⚙️ එක වතාවක් පමණයි! — One-Time Setup</h3>
+          <p>
+            මේ app එකට <strong>Groq API key</strong> ඕනෙ — <strong>100% නොමිලේ!</strong><br/>
+            1. <a href="https://console.groq.com" target="_blank">console.groq.com</a> → Sign up free<br/>
+            2. "API Keys" → "Create API Key" → Copy<br/>
+            3. Key: <code>gsk_...</code> → paste below 👇
+          </p>
+          <div className="key-row">
+            <input className="key-in" type="password" placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxx"
+              value={keyIn} onChange={e=>setKeyIn(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&saveKey()}/>
+            <button className="key-btn" onClick={saveKey}>✅ Save!</button>
+          </div>
+        </div>
+      )}
+
+      <div className="header">
+        <div className="logo">SIPPIFY</div>
+        <div className="tagline">AI-Powered Drink Intelligence · AI රස-දෙවිඳු</div>
+        <div className="badge">✦ 20 Smart Facts · Step-by-Step ✦</div>
+      </div>
+
+      {!result && !loading && (
+        <div className="wizard">
+          <div className="pbar">
+            {STEPS.map((_,i)=><div key={i} className={`pd${i<step?" done":i===step?" active":""}`}/>)}
+          </div>
+
+          {error && (
+            <div className="err-bar">
+              <span>{error}</span>
+              <button className="err-x" onClick={()=>setError(null)}>✕</button>
+            </div>
+          )}
+
+          <div className="scard">
+            <div className="shead">
+              <div className="sicon">{cur.icon}</div>
+              <div>
+                <div className="slabel">{cur.label}</div>
+                <div className="ssub">{cur.sub}</div>
+                <div className="snum">Step {step+1} / {STEPS.length}</div>
+              </div>
+            </div>
+            <div className="opts">
+              {cur.opts.map(opt=>(
+                <button key={opt} className={"opt"+(isSel(opt)?" sel":"")} onClick={()=>select(opt)}>{opt}</button>
+              ))}
+            </div>
+            <div className="nav">
+              <button className="bbk" onClick={()=>step>0&&setStep(step-1)}
+                style={{visibility:step===0?"hidden":"visible"}}>← ආපසු</button>
+              {cur.multi&&(
+                <button className="bnx" disabled={!canNext()}
+                  onClick={()=>step<STEPS.length-1?setStep(step+1):submit()}>
+                  {step===STEPS.length-1?"🍹 Mix කරන්නකෝ!":"ඊළඟ →"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {loading && (
+        <div className="lwrap">
+          <div className="lglass">🥃</div>
+          <div className="lbwrap"><div className="lbar"/></div>
+          <div className="lmsg">{MSGS[msgIdx]}</div>
+          <div className="lsub">Analysing 20 factors...</div>
+        </div>
+      )}
+
+      {result && !loading && (
+        <div className="rcard">
+          <div className="rhero">
+            <span className="demoji">{result.emoji}</span>
+            <div className="dname">{result.drink}</div>
+            <div className="dtype">{result.drinkType}</div>
+            {result.brand&&<div className="brand-row"><span>🏷️</span><span>Brand:</span><span className="brand-name">{result.brand}</span></div>}
+            <div className="ddesc">{result.description}</div>
+            <div className="metrics">
+              {[
+                {val:result.quantity?.match(/[\d–\-]+/)?.[0]||"2-3",lbl:"Glasses"},
+                {val:result.abv||"—",lbl:"ABV %"},
+                {val:result.units||"—",lbl:"Units"},
+                {val:result.price?.split("/")?.[0]?.replace(/[a-zA-Z\s]/g,"").trim()||"—",lbl:"Price"},
+              ].map((m,i)=>(
+                <div key={i} className="mbox">
+                  <div className="mval">{m.val}</div>
+                  <div className="mlbl">{m.lbl}</div>
+                </div>
+              ))}
+            </div>
+            {[{lbl:"Intensity",val:result.intensity},{lbl:"Social",val:result.socialScore},{lbl:"Calm",val:result.calmScore}].map(m=>(
+              <div key={m.lbl} className="mrow">
+                <div className="mlabel">{m.lbl}</div>
+                <div className="mtrack"><div className="mfill" style={{width:`${((m.val||5)/10)*100}%`}}/></div>
+                <div className="mnum">{m.val}/10</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="sec">
+            <div className="stitle">🍹 බොන්නේ හැටි — How to Order</div>
+            <div className="sbody">{result.howToOrder}</div>
+          </div>
+
+          <div className="sec">
+            <div className="stitle">✨ Mood &amp; Flavor</div>
+            <div className="sbody">
+              <strong>Feeling in ~30 min:</strong><br/>{result.moodEffect}
+              <br/><br/><strong>Flavor Profile:</strong><br/>{result.flavorProfile}
+              <br/><br/><strong>Goes great with:</strong><br/>{result.snackPairing}
+            </div>
+          </div>
+
+          {result.drivingAdvice&&result.drivingAdvice!=="null"&&(
+            <div className="wsec">
+              <div className="wtitle">🚗 Driving Advisory</div>
+              <div className="wbody">{result.drivingAdvice}</div>
+            </div>
+          )}
+
+          <div className="wsec">
+            <div className="wtitle">⚠️ Know Your Limits — අධික ලෙස ගත්තොත්?</div>
+            <div className="wbody">{result.overdoseWarning}</div>
+          </div>
+
+          <div className="ssec">
+            <div className="sstitle">💧 Hangover Rescue Plan — හෙට උදෑසනට</div>
+            <div className="ssbody">{result.recoveryAdvice}</div>
+          </div>
+
+          <div className="sec">
+            <div className="stitle">🎲 Also Consider — විකල්ප</div>
+            <div className="alts">
+              {result.alternatives?.map((a,i)=>(
+                <div key={i} className="altrow">
+                  <span className="altn">{a.name}</span>
+                  <span className="altw">{a.reason}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="fbox">
+            <div className="stitle" style={{color:"rgba(199,125,255,.45)"}}>💡 Fun Fact</div>
+            <div className="fbody">{result.funFact}</div>
+          </div>
+
+          <button className="rbtn" onClick={reset}>🔄 Start Over — නැවත බොමු!</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
